@@ -1,0 +1,96 @@
+import express, { Request, Response } from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDB, isMongoConnected } from "./config/db.js";
+import employeeRoutes from "./routes/employeeRoutes.js";
+import roleRoutes from "./routes/roleRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
+import departmentRoutes from "./routes/departmentRoutes.js";
+import shopRoutes from "./routes/shopRoutes.js";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5050;
+
+// Middlewares
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Request logger
+app.use((req, _res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
+// Health check
+app.get("/api/health", (_req: Request, res: Response) => {
+  res.json({
+    status: "healthy",
+    application: "ESARTHI Employment Dashboard Backend",
+    database: isMongoConnected ? "connected" : "in-memory-fallback",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Auth Bypass Endpoint - Returns active admin session directly without blocking
+app.get("/api/auth/me", (_req: Request, res: Response) => {
+  res.json({
+    authenticated: true,
+    user: {
+      id: "admin-esarthi-1",
+      email: "admin@esarthi.internal",
+      name: "ESARTHI Admin",
+      type: "admin",
+      role: "System Administrator",
+    },
+    message: "Authentication bypassed for rapid access",
+  });
+});
+
+// Ensure DB connection before processing requests
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+  } catch {
+    // In-memory fallback is handled within db.ts
+  }
+  next();
+});
+
+// Register API routes
+app.use("/api/employees", employeeRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/stats", statsRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/shops", shopRoutes);
+
+// Fallback 404 handler
+app.use((_req: Request, res: Response) => {
+  res.status(404).json({ error: "Endpoint not found" });
+});
+
+// Global error handler
+app.use((err: any, _req: Request, res: Response, _next: any) => {
+  console.error("Backend Error:", err);
+  res.status(500).json({ error: err.message || "Internal Server Error" });
+});
+
+// Start server when run directly (local / Node)
+async function startServer() {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 [ESARTHI Backend] Server running at http://localhost:${PORT}`);
+    console.log(`📡 [Endpoints] /api/employees | /api/roles | /api/stats | /api/shops | /api/health`);
+  });
+}
+
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error("Failed to start server:", err);
+  });
+}
+
+export default app;
