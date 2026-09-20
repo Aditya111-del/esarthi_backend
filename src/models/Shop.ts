@@ -18,6 +18,7 @@ export interface IShop extends Document {
   supportedConnectors?: string[];
   uptimePercent?: number;
   dailyEnergyKwh?: number;
+  shopImage?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +43,7 @@ const ShopSchema: Schema = new Schema(
     supportedConnectors: { type: [String], default: ["CCS-2", "CHAdeMO"] },
     uptimePercent: { type: Number, default: 99.8 },
     dailyEnergyKwh: { type: Number, default: 3200 },
+    shopImage: { type: String, default: "" },
   },
   {
     timestamps: true,

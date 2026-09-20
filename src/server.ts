@@ -10,6 +10,7 @@ import statsRoutes from "./routes/statsRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import shopRoutes from "./routes/shopRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import uploadRoutes from "./routes/uploadRoutes.js";
 
 dotenv.config();
 try {
@@ -105,6 +106,7 @@ app.use("/api/stats", statsRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/shops", shopRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/upload", uploadRoutes);
 
 // Fallback 404 handler
 app.use((_req: Request, res: Response) => {

@@ -28,6 +28,9 @@ export interface IEmployee extends Document {
   safetyEquipmentCleared?: boolean;
   bio: string;
   image?: string;
+  profilePhoto?: string;
+  aadhaarCardUrl?: string;
+  panCardUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -70,6 +73,9 @@ const EmployeeSchema: Schema = new Schema(
     safetyEquipmentCleared: { type: Boolean, default: true },
     bio: { type: String, default: "" },
     image: { type: String, default: "" },
+    profilePhoto: { type: String, default: "" },
+    aadhaarCardUrl: { type: String, default: "" },
+    panCardUrl: { type: String, default: "" },
   },
   {
     timestamps: true,
