@@ -68,6 +68,11 @@ app.get("/api/health", (_req: Request, res: Response) => {
   });
 });
 
+// Lightweight Ping / Wakeup Endpoint
+app.get("/api/ping", (_req: Request, res: Response) => {
+  res.json({ status: "awake", timestamp: new Date().toISOString() });
+});
+
 // Auth Bypass Endpoint - Returns active admin session directly without blocking
 app.get("/api/auth/me", (_req: Request, res: Response) => {
   res.json({
@@ -112,6 +117,36 @@ app.use((err: any, _req: Request, res: Response, _next: any) => {
   res.status(500).json({ error: err.message || "Internal Server Error" });
 });
 
+// Automated Self-Ping Keep-Alive Trigger (Prevents Render free-tier idle spin-down)
+const PING_INTERVAL_MS = 9 * 60 * 1000; // Ping every 9 minutes (Render free tier spins down at 15m)
+const RENDER_SERVICE_URL = process.env.RENDER_EXTERNAL_URL || "https://esarthi-backend-2ya2.onrender.com";
+
+function setupKeepAliveTrigger() {
+  console.log(`⏱️ [Keep-Alive] Configured keep-alive trigger every 9m targeting: ${RENDER_SERVICE_URL}`);
+
+  // Initial wake-up ping after 30 seconds
+  setTimeout(runPing, 30000);
+
+  // Recurring ping loop
+  setInterval(runPing, PING_INTERVAL_MS);
+
+  async function runPing() {
+    try {
+      const pingUrl = `${RENDER_SERVICE_URL.replace(/\/$/, "")}/api/ping`;
+      const res = await fetch(pingUrl, {
+        headers: { "User-Agent": "ESARTHI-KeepAlive-Trigger/1.0" },
+      });
+      if (res.ok) {
+        console.log(`💓 [Keep-Alive Ping] Successfully pinged self at ${new Date().toISOString()} (HTTP ${res.status})`);
+      } else {
+        console.warn(`⚠️ [Keep-Alive Ping] Returned status ${res.status}`);
+      }
+    } catch (err: any) {
+      console.warn(`⚠️ [Keep-Alive Ping] Ping attempt failed: ${err.message}`);
+    }
+  }
+}
+
 // Start server when run directly (local / Node)
 async function startServer() {
   await connectDB();
@@ -119,6 +154,7 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`🚀 [ESARTHI Backend] Server running at http://localhost:${PORT}`);
     console.log(`📡 [Endpoints] /api/employees | /api/roles | /api/stats | /api/shops | /api/health`);
+    setupKeepAliveTrigger();
   });
 }
 
