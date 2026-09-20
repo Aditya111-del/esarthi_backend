@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Response } from "express";
 import multer from "multer";
 import cloudinary from "../config/cloudinary.js";
 
@@ -46,73 +46,58 @@ function uploadToCloudinary(
 
 /**
  * POST /api/upload/single
- * Body: multipart/form-data with field "file" and query "folder" (e.g. employees, shops, documents)
+ * Body: multipart/form-data — field "file", query param "folder"
  */
-router.post(
-  "/single",
-  upload.single("file"),
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      if (!req.file) {
-        res.status(400).json({ error: "No file uploaded" });
-        return;
-      }
-
-      const folder = (req.query.folder as string) || "misc";
-      const isPdf = req.file.mimetype === "application/pdf";
-      const resourceType = isPdf ? "raw" : "image";
-
-      const { url, publicId } = await uploadToCloudinary(
-        req.file.buffer,
-        folder,
-        resourceType
-      );
-
-      res.json({ url, publicId, mimeType: req.file.mimetype, folder });
-    } catch (err: any) {
-      console.error("[Upload] Error:", err.message);
-      res.status(500).json({ error: err.message || "Upload failed" });
+router.post("/single", upload.single("file"), async (req: any, res: Response): Promise<void> => {
+  try {
+    const file = req.file as { buffer: Buffer; mimetype: string } | undefined;
+    if (!file) {
+      res.status(400).json({ error: "No file uploaded" });
+      return;
     }
+
+    const folder = (req.query.folder as string) || "misc";
+    const isPdf = file.mimetype === "application/pdf";
+    const resourceType: "image" | "raw" = isPdf ? "raw" : "image";
+
+    const { url, publicId } = await uploadToCloudinary(file.buffer, folder, resourceType);
+
+    res.json({ url, publicId, mimeType: file.mimetype, folder });
+  } catch (err: any) {
+    console.error("[Upload/Single] Error:", err.message);
+    res.status(500).json({ error: err.message || "Upload failed" });
   }
-);
+});
 
 /**
  * POST /api/upload/multiple
- * Body: multipart/form-data with field "files[]" and query "folder"
- * Max 5 files at once
+ * Body: multipart/form-data — field "files" (up to 5), query param "folder"
  */
-router.post(
-  "/multiple",
-  upload.array("files", 5),
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const files = req.files as Express.Multer.File[];
-      if (!files || files.length === 0) {
-        res.status(400).json({ error: "No files uploaded" });
-        return;
-      }
+router.post("/multiple", upload.array("files", 5), async (req: any, res: Response): Promise<void> => {
+  try {
+    const files = (req.files || []) as Array<{ buffer: Buffer; mimetype: string; originalname: string }>;
 
-      const folder = (req.query.folder as string) || "misc";
-
-      const results = await Promise.all(
-        files.map(async (file) => {
-          const isPdf = file.mimetype === "application/pdf";
-          const resourceType = isPdf ? "raw" : "image";
-          const { url, publicId } = await uploadToCloudinary(
-            file.buffer,
-            folder,
-            resourceType
-          );
-          return { url, publicId, originalName: file.originalname, mimeType: file.mimetype };
-        })
-      );
-
-      res.json({ uploaded: results.length, files: results });
-    } catch (err: any) {
-      console.error("[Upload] Multiple error:", err.message);
-      res.status(500).json({ error: err.message || "Upload failed" });
+    if (files.length === 0) {
+      res.status(400).json({ error: "No files uploaded" });
+      return;
     }
+
+    const folder = (req.query.folder as string) || "misc";
+
+    const results = await Promise.all(
+      files.map(async (file) => {
+        const isPdf = file.mimetype === "application/pdf";
+        const resourceType: "image" | "raw" = isPdf ? "raw" : "image";
+        const { url, publicId } = await uploadToCloudinary(file.buffer, folder, resourceType);
+        return { url, publicId, originalName: file.originalname, mimeType: file.mimetype };
+      })
+    );
+
+    res.json({ uploaded: results.length, files: results });
+  } catch (err: any) {
+    console.error("[Upload/Multiple] Error:", err.message);
+    res.status(500).json({ error: err.message || "Upload failed" });
   }
-);
+});
 
 export default router;
