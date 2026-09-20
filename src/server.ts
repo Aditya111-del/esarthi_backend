@@ -15,8 +15,32 @@ dotenv.config({ path: new URL("../../.env", import.meta.url).pathname });
 const app = express();
 const PORT = process.env.PORT || 5050;
 
+// Allowed origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "https://esarthifrontend.vercel.app",
+  "http://localhost:3000",
+  "http://localhost:5173",
+].filter(Boolean) as string[];
+
 // Middlewares
-app.use(cors({ origin: "*" }));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        process.env.NODE_ENV !== "production" ||
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
