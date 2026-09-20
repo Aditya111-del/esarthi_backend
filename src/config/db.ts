@@ -68,6 +68,31 @@ async function seedDatabaseIfEmpty() {
     if (shopCount === 0) {
       console.log("🌱 [MongoDB] Seeding initial ESARTHI shops...");
       await ShopModel.insertMany(initialShops);
+    } else {
+      // Ensure the 4 primary branches have @esarthi.com admin IDs configured
+      await ShopModel.updateOne(
+        { $or: [{ code: "EV-DEL-01" }, { _id: "shp-del-01" }] },
+        { $set: { adminEmail: "delhi.admin@esarthi.com", adminName: "Rajesh Kumar" } }
+      );
+      await ShopModel.updateOne(
+        { $or: [{ code: "EV-BLR-01" }, { _id: "shp-blr-01" }] },
+        { $set: { adminEmail: "bengaluru.admin@esarthi.com", adminName: "Vikram Malhotra" } }
+      );
+      await ShopModel.updateOne(
+        { $or: [{ code: "EV-MUM-01" }, { _id: "shp-mum-01" }] },
+        { $set: { adminEmail: "mumbai.admin@esarthi.com", adminName: "Sneha Patel" } }
+      );
+      await ShopModel.updateOne(
+        { $or: [{ code: "EV-HYD-01" }, { _id: "shp-hyd-01" }] },
+        { $set: { adminEmail: "hyderabad.admin@esarthi.com", adminName: "Karthik Reddy" } }
+      );
+
+      // Clean any legacy internal emails to @esarthi.com
+      const legacyShops = await ShopModel.find({ adminEmail: /@esarthi-ev\.internal/ });
+      for (const s of legacyShops) {
+        const newEmail = s.adminEmail.replace("@esarthi-ev.internal", "@esarthi.com");
+        await ShopModel.updateOne({ _id: s._id }, { $set: { adminEmail: newEmail } });
+      }
     }
 
     const employeeCount = await EmployeeModel.countDocuments();

@@ -107,15 +107,21 @@ router.post("/", async (req: Request, res: Response) => {
       ? data.code.toUpperCase().trim()
       : `SHP-${data.city.slice(0, 3).toUpperCase()}-${Math.floor(10 + Math.random() * 90)}`;
 
-    const adminName = data.adminName || "Assigned Shop Admin";
-    const adminEmail = data.adminEmail || `${adminName.toLowerCase().replace(/\s+/g, ".")}@esarthi.internal`;
+    const adminName = data.adminName ? data.adminName.trim() : "Assigned Hub Admin";
+    let adminEmail = (data.adminEmail || "").trim().toLowerCase();
+    if (!adminEmail) {
+      const cleanPrefix = adminName.toLowerCase().replace(/[^a-z0-9]+/g, ".").replace(/^\.|\.$/g, "");
+      adminEmail = `${cleanPrefix || "admin"}@esarthi.com`;
+    } else if (!adminEmail.includes("@")) {
+      adminEmail = `${adminEmail}@esarthi.com`;
+    }
 
     const newShopData = {
       name: data.name.trim(),
       code,
       city: data.city.trim(),
       address: data.address || "",
-      contactEmail: data.contactEmail || `station.${code.toLowerCase()}@esarthi-ev.internal`,
+      contactEmail: data.contactEmail || `station.${code.toLowerCase()}@esarthi.com`,
       contactPhone: data.contactPhone || "",
       adminName,
       adminEmail,
