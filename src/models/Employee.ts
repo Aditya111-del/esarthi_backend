@@ -34,6 +34,7 @@ export interface IEmployee extends Document {
 
 const EmployeeSchema: Schema = new Schema(
   {
+    _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
     name: { type: String, required: true, trim: true },
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },

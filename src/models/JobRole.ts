@@ -14,6 +14,7 @@ export interface IJobRole extends Document {
 
 const JobRoleSchema: Schema = new Schema(
   {
+    _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
     title: { type: String, required: true, trim: true },
     department: { type: String, required: true, trim: true },
     level: { type: String, required: true, default: "L1" },

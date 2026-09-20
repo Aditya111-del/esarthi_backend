@@ -9,6 +9,8 @@ import departmentRoutes from "./routes/departmentRoutes.js";
 import shopRoutes from "./routes/shopRoutes.js";
 
 dotenv.config();
+dotenv.config({ path: new URL("../.env", import.meta.url).pathname });
+dotenv.config({ path: new URL("../../.env", import.meta.url).pathname });
 
 const app = express();
 const PORT = process.env.PORT || 5050;

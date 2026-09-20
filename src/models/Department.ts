@@ -11,6 +11,7 @@ export interface IDepartment extends Document {
 
 const DepartmentSchema: Schema = new Schema(
   {
+    _id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
     name: { type: String, required: true, unique: true, trim: true },
     code: { type: String, required: true, unique: true, uppercase: true, trim: true },
     lead: { type: String, default: "" },
