@@ -7,7 +7,7 @@ const router = Router();
 // Platform Superadmin master credential
 const SUPERADMIN_USER = {
   id: "superadmin-esarthi",
-  name: "Suraj Dev Sagar",
+  name: "Suraj Sev Sagar",
   email: "superadmin@esarthi.com",
   type: "superadmin" as const,
   role: "Platform Superadmin",
@@ -43,7 +43,7 @@ router.post("/login", async (req: Request, res: Response) => {
       return res.json({
         success: true,
         user: SUPERADMIN_USER,
-        message: "Authenticated as Platform Superadmin (Suraj Dev Sagar)",
+        message: "Authenticated as Platform Superadmin (Suraj Sev Sagar)",
       });
     }
 
