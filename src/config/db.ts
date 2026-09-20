@@ -42,7 +42,7 @@ export async function connectDB(): Promise<void> {
       await mongoose.connect(uri, {
         serverSelectionTimeoutMS: 3000,
         connectTimeoutMS: 5000,
-      });
+      } as any);
       isMongoConnected = true;
       console.log(`✅ [MongoDB] Connected successfully to: ${maskedUri}`);
 

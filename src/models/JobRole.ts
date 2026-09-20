@@ -28,4 +28,4 @@ const JobRoleSchema: Schema = new Schema(
   }
 );
 
-export const JobRoleModel = mongoose.models.JobRole || mongoose.model<IJobRole>("JobRole", JobRoleSchema);
+export const JobRoleModel: mongoose.Model<any> = mongoose.models.JobRole || mongoose.model("JobRole", JobRoleSchema);

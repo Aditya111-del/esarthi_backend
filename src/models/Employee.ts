@@ -76,4 +76,4 @@ const EmployeeSchema: Schema = new Schema(
   }
 );
 
-export const EmployeeModel = mongoose.models.Employee || mongoose.model<IEmployee>("Employee", EmployeeSchema);
+export const EmployeeModel: mongoose.Model<any> = mongoose.models.Employee || mongoose.model("Employee", EmployeeSchema);

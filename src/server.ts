@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import { connectDB, isMongoConnected } from "./config/db.js";
 import employeeRoutes from "./routes/employeeRoutes.js";
 import roleRoutes from "./routes/roleRoutes.js";
@@ -9,8 +11,13 @@ import departmentRoutes from "./routes/departmentRoutes.js";
 import shopRoutes from "./routes/shopRoutes.js";
 
 dotenv.config();
-dotenv.config({ path: new URL("../.env", import.meta.url).pathname });
-dotenv.config({ path: new URL("../../.env", import.meta.url).pathname });
+try {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  dotenv.config({ path: path.resolve(currentDir, "../.env") });
+  dotenv.config({ path: path.resolve(currentDir, "../../.env") });
+} catch {
+  // Ignore in environments where import.meta.url is virtual
+}
 
 const app = express();
 const PORT = process.env.PORT || 5050;
@@ -26,7 +33,7 @@ const allowedOrigins = [
 // Middlewares
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (origin: any, callback: any) => {
       if (!origin) return callback(null, true);
       if (
         process.env.NODE_ENV !== "production" ||
@@ -45,7 +52,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logger
-app.use((req, _res, next) => {
+app.use((req: any, _res: any, next: any) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   next();
 });
@@ -76,7 +83,7 @@ app.get("/api/auth/me", (_req: Request, res: Response) => {
 });
 
 // Ensure DB connection before processing requests
-app.use(async (_req, _res, next) => {
+app.use(async (_req: any, _res: any, next: any) => {
   try {
     await connectDB();
   } catch {
